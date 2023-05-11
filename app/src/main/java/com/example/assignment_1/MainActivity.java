@@ -1,5 +1,6 @@
 package com.example.assignment_1;
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -16,12 +17,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import java.io.IOException;
+import android.app.AlertDialog;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PERMISSION_REQUEST_CODE = 2;
     private ImageView imageView;
     private Button btnUpload;
+    private Button btnScan;
     private boolean isImageSelected = false;
 
     @Override
@@ -31,17 +35,18 @@ public class MainActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageView);
         btnUpload = findViewById(R.id.btnUpload);
+        btnScan = findViewById(R.id.btnScan);
+        btnScan.setVisibility(View.GONE); // Button B is initially invisible
 
         btnUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isImageSelected) {
-                    // If an image has been selected, delete it
                     imageView.setImageDrawable(null);
-                    btnUpload.setText("Upload Map");
+                    btnUpload.setText("Upload");
+                    btnScan.setVisibility(View.GONE); // Hide Button B when the image is deleted
                     isImageSelected = false;
                 } else {
-                    // Otherwise, open the file chooser
                     if (ContextCompat.checkSelfPermission(MainActivity.this,
                             Manifest.permission.READ_EXTERNAL_STORAGE)
                             != PackageManager.PERMISSION_GRANTED) {
@@ -53,6 +58,23 @@ public class MainActivity extends AppCompatActivity {
                         openFileChooser();
                     }
                 }
+            }
+        });
+
+        btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Scan Image")
+                        .setMessage("Would you like to scan the image?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Perform action on click
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
             }
         });
     }
@@ -73,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 imageView.setImageBitmap(bitmap);
-                btnUpload.setText("Delete Map");
+                btnUpload.setText("Delete");
+                btnScan.setVisibility(View.VISIBLE); // Show Button B when an image is uploaded
                 isImageSelected = true;
             } catch (IOException e) {
                 e.printStackTrace();
