@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Assignment_1</string>
+    <string name="imageview_descriptor">floor_img</string>
+    <string name="btnUpload">btnUpload</string>
+</resources>
