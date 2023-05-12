@@ -1,42 +1,29 @@
 package com.example.assignment_1;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
 import java.util.List;
 import android.Manifest;
-import android.content.pm.PackageManager;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.annotation.Nullable;
 
 
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import android.app.Dialog;
-import android.content.Context;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
-import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import java.util.List;
+import android.util.Pair;
 
 public class AP_Scanned extends DialogFragment {
 
@@ -55,7 +42,9 @@ public class AP_Scanned extends DialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.ap_scanned, null);
 
-        textView = view.findViewById(R.id.ap_textview); // Set your id here
+        textView = view.findViewById(R.id.ap_textview);
+        textView.setMovementMethod(new ScrollingMovementMethod());
+
         yesButton = view.findViewById(R.id.ap_Yes_Button);
         noButton = view.findViewById(R.id.ap_No_Button);
 
@@ -84,7 +73,7 @@ public class AP_Scanned extends DialogFragment {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     scanWifiNetworks();
                 } else {
-                    // Permission denied - you can handle it here
+                    Log.d("DD","Something wrong in permission");
                 }
                 return;
             }
@@ -98,11 +87,9 @@ public class AP_Scanned extends DialogFragment {
             for (ScanResult scanResult : results) {
                 String ssid = scanResult.SSID;
                 String bssid = scanResult.BSSID;
-                String capabilities = scanResult.capabilities;
-                int frequency = scanResult.frequency;
                 int level = scanResult.level;
 
-                String details = ssid + "; " + bssid + "; " + capabilities + "; " + frequency + "MHz; " + level + "dBm";
+                String details = ssid + ", " + bssid + ", " + level + "dBm";
                 stringBuilder.append(details).append("\n");
             }
 
@@ -111,9 +98,9 @@ public class AP_Scanned extends DialogFragment {
             yesButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    saveResults(((TouchImageView) getActivity().findViewById(R.id.imageView)).getTouchX(),
-                            ((TouchImageView) getActivity().findViewById(R.id.imageView)).getTouchY(),
-                            stringBuilder.toString());
+                    float dotX = getArguments().getFloat("dotX");
+                    float dotY = getArguments().getFloat("dotY");
+                    saveResults(dotX, dotY, stringBuilder.toString());
                     dismiss();
                 }
             });
@@ -125,15 +112,16 @@ public class AP_Scanned extends DialogFragment {
                 }
             });
         } catch (SecurityException e) {
-            // Handle the exception, for example, show a message to the user.
         }
     }
 
 
     private void saveResults(float x, float y, String results) {
-        // Save your results here
+        Log.d("TT","Reach SaveResults");
         TouchPointAndResults data = new TouchPointAndResults(x, y, results);
-        // Store 'data' somehow
+        ((MainActivity) getActivity()).addScanResults(new Pair<>(x, y), results);
+
     }
+
 
 }
