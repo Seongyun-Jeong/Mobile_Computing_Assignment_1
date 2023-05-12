@@ -31,6 +31,7 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <activity android:name="com.example.assignment_1.AP_Scanned" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.example.assignment_1;
 import android.Manifest;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,6 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,7 +22,8 @@ import androidx.core.content.ContextCompat;
 import java.io.IOException;
 import android.app.AlertDialog;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements MyDialogFragment.OnYesButtonClickedListener, DotActionsDialogFragment.OnDotActionsSelectedListener {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PERMISSION_REQUEST_CODE = 2;
@@ -27,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btnUpload;
     private Button btnScan;
     private boolean isImageSelected = false;
+    private DotsOverlayView dotsOverlayView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         btnUpload = findViewById(R.id.btnUpload);
         btnScan = findViewById(R.id.btnScan);
         btnScan.setVisibility(View.GONE); // Button B is initially invisible
+        dotsOverlayView = findViewById(R.id.dotsOverlayView);
 
         btnUpload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,20 +68,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        imageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    int dotIndex = dotsOverlayView.getDotAtPosition(event.getX(), event.getY());
+                    if (dotIndex != -1) {
+                        // An existing dot was touched. Show the DotActionsDialogFragment.
+                        DotActionsDialogFragment dialog = new DotActionsDialogFragment(dotIndex);
+                        dialog.show(getSupportFragmentManager(), "DotActionsDialogFragment");
+                    } else {
+                        // No existing dot was touched. Add a new dot and show the MyDialogFragment.
+                        dotsOverlayView.addDot(event.getX(), event.getY());
+                        MyDialogFragment dialog = new MyDialogFragment();
+                        dialog.show(getSupportFragmentManager(), "MyDialogFragment");
+                    }
+                }
+                return true;
+            }
+        });
+
+
+
+
+
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Scan Image")
-                        .setMessage("Would you like to scan the image?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Perform action on click
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
+                new MyDialogFragment().show(getSupportFragmentManager(), "MyDialogFragment");
             }
         });
     }
@@ -103,4 +124,70 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    public void showDialog() {
+        MyDialogFragment dialog = new MyDialogFragment();
+        dialog.show(getSupportFragmentManager(), "MyDialogFragment");
+    }
+
+    @Override
+    public void onYesButtonClicked() {
+//        MyDialogFragment dialog = new MyDialogFragment();
+//        dialog.show(getSupportFragmentManager(), "MyDialogFragment");
+//        Intent intent = new Intent(this, AP_Scanned.class);
+//        startActivity(intent);
+        AP_Scanned AP = new AP_Scanned();
+        AP.show(getSupportFragmentManager(), "AP_Scanned");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        savedInstanceState.putBoolean("IsImageSelected", isImageSelected);
+        // etc.
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // Restore UI state from the savedInstanceState.
+        // This bundle has also been passed to onCreate.
+        isImageSelected = savedInstanceState.getBoolean("IsImageSelected");
+        // etc.
+    }
+        // ...
+
+        @Override
+        public void onDeleteAndAddNew(int dotIndex) {
+            // Implement your deletion and addition logic here
+            // For example, you might remove the dot at the given index and then show a dialog to add a new one
+            dotsOverlayView.removeDot(dotIndex);
+            MyDialogFragment dialog = new MyDialogFragment();
+            dialog.show(getSupportFragmentManager(), "MyDialogFragment");
+        }
+
+        @Override
+        public void onDelete(int dotIndex) {
+            // Implement your deletion logic here
+            // For example, you might simply remove the dot at the given index
+            dotsOverlayView.removeDot(dotIndex);
+        }
+
+        @Override
+        public void onSeeResults(int dotIndex) {
+            // Implement your logic for viewing results here
+            // For example, you might show a dialog with the results associated with the given dot
+        }
+
+        // ...
+
+
+
+
+
+
+
 }
